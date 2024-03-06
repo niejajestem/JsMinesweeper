@@ -2,12 +2,12 @@ const canvas = document.getElementById("kanwa");
 const ctx = canvas.getContext('2d');
 // tileStatus 0-unclicked 1-flagged 2-clicked
 const tileStatus = [];
-const mapValue = [];
+const tileValue = [];
 
 let tilesVertical = 8;
 let tilesHorizontal = 8;
 let tileSize = 32;
-let bombCount = 10;
+let bombCount = 2;
 
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
@@ -15,18 +15,18 @@ kanwa.width = tileSize*tilesHorizontal;
 for(let i = 0; i < tilesHorizontal; i++)
 {
     tileStatus[i] = [];
-    mapValue[i] = [];
+    tileValue[i] = [];
 }
 
 for (let i = 0; i < tilesHorizontal; i++)
 {
     for (let j = 0; j < tilesVertical; j++)
     {
-        tileStatus[i][j] = 2;
+        tileStatus[i][j] = 0;
     }
 }
 
-console.log(mapValue);
+console.log(tileValue);
 
 function RandomNumber(min, max)
 {
@@ -64,15 +64,7 @@ function DrawTile(x, y, tileType) {
     };
 
     switch(tileType) {
-        case 11:
-            img.src = "11.png";
-            break;
-        case 10:
-            img.src = "10.png";
-            break;
-        case 9:
-            img.src = "9.png";
-            break;
+        
         case 0:
             img.src = "0.png";
             break;
@@ -97,8 +89,29 @@ function DrawTile(x, y, tileType) {
         case 7:
             img.src = "7.png";
             break;
+        case 8:
+            img.src = "8.png";
+            break;
+        case 9:
+            img.src = "9.png";
+            break;
+        case 10:
+            img.src = "10.png";
+            break;
+        case 11:
+            img.src = "11.png";
+            break;
     }
 }
+
+// let a = prompt();
+// let b = prompt();
+// let wynik = 0;
+
+// for(let i = 0; i <= b; i++)
+// {
+//     wynik *= ;
+// }
 
 function GenerateBombms()
 {
@@ -109,22 +122,22 @@ function GenerateBombms()
         let y = element%tilesVertical;
         let x = Math.floor(element/tilesVertical);
         console.log(element + " X:" + x + " Y:" + y);
-        mapValue[x][y] = 9;
+        tileValue[x][y] = 9;
     });
 }
 
-function CountMapValue()
+function CounttileValue()
 {
     for (let i = 0; i < tilesHorizontal; i++) {
         for (let j = 0; j < tilesVertical; j++) {
-            if(mapValue[i][j] != 9)
+            if(tileValue[i][j] != 9)
             {
-                mapValue[i][j] = 0;
+                tileValue[i][j] = 0;
             }
         }
     }
 
-    mapValue.forEach((innerArray, outerIndex) => {
+    tileValue.forEach((innerArray, outerIndex) => {
         innerArray.forEach((element, innerIndex) => {
             if(element == 9)
             {
@@ -134,11 +147,11 @@ function CountMapValue()
                 {
                     for(let j = -1; j <= 1; j++)
                     {
-                        if(IsIndexInArray(mapValue, outerIndex+i,innerIndex+j) && mapValue[outerIndex+i][innerIndex+j] != 9)
+                        if(IsIndexInArray(tileValue, outerIndex+i,innerIndex+j) && tileValue[outerIndex+i][innerIndex+j] != 9)
                         {
                             if((i == 0 && j == 0)==false)
                             {
-                                mapValue[outerIndex+i][innerIndex+j] += 1;
+                                tileValue[outerIndex+i][innerIndex+j] += 1;
                                 console.log("i = "+ i +" j = "+ j);
                             }
                         }
@@ -147,8 +160,12 @@ function CountMapValue()
             }
         });
     });
-    console.log(mapValue);
+    console.log(tileValue);
 }
+
+// pobierasz dwie liczy od uzytkownika np.a i b
+// podnosisz a do potegi b
+// podpowiedz: a^b to jest to samo a*a*a*a b razy
 
 console.log("AAAAAAAAA");
 console.log(tileStatus);
@@ -164,7 +181,7 @@ function DrawBoard()
 
             if(tileStatus[i][j] == 2)
             {
-                DrawTile(x, y, mapValue[i][j]);
+                DrawTile(x, y, tileValue[i][j]);
             }
             else if(tileStatus[i][j] == 1)
             {
@@ -173,6 +190,33 @@ function DrawBoard()
             else
             {
                 DrawTile(x, y, 10);
+            }
+        }
+    }
+}
+
+function Defuse(x,y)
+{
+    tileStatus[x][y] = 2;
+    
+    if(tileValue[x][y] == 0)
+    {
+        for(let i = -1; i <= 1; i++)
+        {
+            for(let j = -1; j <= 1; j++)
+            {
+                // Why tf this wont work
+                // if(tileStatus[x + i][y + j] == 0 && IsIndexInArray(tileValue, x+i, y+j))
+                // {
+                //     console.warn("X: "+(x+i)+" Y: "+(y+j));
+                //     Defuse(x+i, y+j);
+                // }
+                // BUT THIS DOES??!?!?!??
+                if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x + i][y + j] == 0)
+                {
+                    console.warn("X: "+(x+i)+" Y: "+(y+j));
+                    Defuse(x+i, y+j);
+                }
             }
         }
     }
@@ -187,13 +231,14 @@ canvas.addEventListener("click", function(event) {
     const y = Math.floor(mouseY / tileSize);
 
     console.log("Tile clicked at position (" + x + ", " + y + ")");
-    if(tileStatus[x][y] != 1)
+    if(tileStatus[x][y] == 0)
     {
-        tileStatus[x][y] = 2;
-        DrawBoard();
+        Defuse(x,y);
     }
     console.log(tileStatus[x][y]);
     event.preventDefault();
+    DrawBoard();
+
 });
 
 canvas.addEventListener("contextmenu", function(event) {
@@ -220,7 +265,7 @@ canvas.addEventListener("contextmenu", function(event) {
 });
 
 GenerateBombms();
-CountMapValue();
+CounttileValue();
 
 DrawBoard();
 
