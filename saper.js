@@ -1,6 +1,6 @@
 const canvas = document.getElementById("kanwa");
 const ctx = canvas.getContext('2d');
-const isClicked = [];
+const tileStatus = [];
 const mapValue = [];
 
 let tilesVertical = 8;
@@ -13,13 +13,13 @@ kanwa.width = tileSize*tilesHorizontal;
 
 for(let i = 0; i < tilesHorizontal; i++)
 {
-    isClicked[i] = [];
+    tileStatus[i] = [];
     mapValue[i] = [];
 }
 
 for (let i = 0; i < tilesHorizontal; i++) {
     for (let j = 0; j < tilesVertical; j++) {
-        isClicked[i][j] = "unclicked";
+        tileStatus[i][j] = false;
     }
 }
 
@@ -52,11 +52,11 @@ function DrawTile(x, y, tileType) {
     };
 
     switch(tileType) {
-        case "unclicked":
-            img.src = "unclicked.png";
+        case 10:
+            img.src = "10.png";
             break;
         case 9:
-            img.src = "bomb.png";
+            img.src = "9.png";
             break;
         case 0:
             img.src = "0.png";
@@ -114,10 +114,11 @@ function CountMapValue()
     console.log(mapValue);
 }
 
-console.log("AAAA");
-console.log(isClicked);
+console.log("AAAAAAAAA");
+console.log(tileStatus);
 
-function DrawBoard()
+
+async function DrawBoard()
 {
     for (let i = 0; i < tilesHorizontal; i++)
     {
@@ -125,11 +126,15 @@ function DrawBoard()
         {
             const x = i * tileSize;
             const y = j * tileSize;
-            
-            // draws map (numbers, bombs)
-            DrawTile(x, y, mapValue[i][j]);
-            // draws "unclicked"
-            DrawTile(x, y, isClicked[i][j])
+
+            if(tileStatus[i][j] == true)
+            {
+                DrawTile(x, y, mapValue[i][j]);
+            }
+            else
+            {
+                DrawTile(x, y, 10);
+            }
         }
     }
 }
@@ -139,15 +144,17 @@ function Defuse()
 
 }
 
-canvas.addEventListener('click', function(event) {
+canvas.addEventListener("click", function(event) {
     const boundingRect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - boundingRect.left;
     const mouseY = event.clientY - boundingRect.top;
 
-    const tileX = Math.floor(mouseX / tileSize);
-    const tileY = Math.floor(mouseY / tileSize);
+    const x = Math.floor(mouseX / tileSize);
+    const y = Math.floor(mouseY / tileSize);
 
-    console.log('Tile clicked at position (' + tileX + ', ' + tileY + ')');
+    console.log("Tile clicked at position (" + x + ", " + y + ")");
+    tileStatus[x][y] = true;
+    DrawBoard();
 });
 
 GenerateBombms();
