@@ -1,5 +1,6 @@
 const canvas = document.getElementById("kanwa");
 const ctx = canvas.getContext('2d');
+// tileStatus 0-unclicked 1-flagged 2-clicked
 const tileStatus = [];
 const mapValue = [];
 
@@ -19,7 +20,7 @@ for(let i = 0; i < tilesHorizontal; i++)
 
 for (let i = 0; i < tilesHorizontal; i++) {
     for (let j = 0; j < tilesVertical; j++) {
-        tileStatus[i][j] = false;
+        tileStatus[i][j] = 0;
     }
 }
 
@@ -52,6 +53,9 @@ function DrawTile(x, y, tileType) {
     };
 
     switch(tileType) {
+        case 11:
+            img.src = "11.png";
+            break;
         case 10:
             img.src = "10.png";
             break;
@@ -127,9 +131,13 @@ async function DrawBoard()
             const x = i * tileSize;
             const y = j * tileSize;
 
-            if(tileStatus[i][j] == true)
+            if(tileStatus[i][j] == 2)
             {
                 DrawTile(x, y, mapValue[i][j]);
+            }
+            else if(tileStatus[i][j] == 1)
+            {
+                DrawTile(x, y, 11);
             }
             else
             {
@@ -153,8 +161,36 @@ canvas.addEventListener("click", function(event) {
     const y = Math.floor(mouseY / tileSize);
 
     console.log("Tile clicked at position (" + x + ", " + y + ")");
-    tileStatus[x][y] = true;
+    if(tileStatus[x][y] != 1)
+    {
+        tileStatus[x][y] = 2;
+        DrawBoard();
+    }
+    console.log(tileStatus[x][y]);
+    event.preventDefault();
+});
+
+canvas.addEventListener("contextmenu", function(event) {
+    const boundingRect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - boundingRect.left;
+    const mouseY = event.clientY - boundingRect.top;
+
+    const x = Math.floor(mouseX / tileSize);
+    const y = Math.floor(mouseY / tileSize);
+
+    console.log("Tile flagged at position (" + x + ", " + y + ")");
+    switch(tileStatus[x][y])
+    {
+        case 0:
+            tileStatus[x][y] = 1;
+            break;
+        case 1:
+            tileStatus[x][y] = 0;
+            break;
+    }
     DrawBoard();
+    console.log(tileStatus[x][y]);
+    event.preventDefault();
 });
 
 GenerateBombms();
