@@ -1,15 +1,29 @@
 const canvas = document.getElementById("kanwa");
 const ctx = canvas.getContext('2d');
-const plane = [];
+const isClicked = [];
+const mapValue = [];
 
-let tilesVertical = 9;
-let tilesHorizontal = 9;
+let tilesVertical = 8;
+let tilesHorizontal = 8;
 let tileSize = 32;
 let bombCount = 10;
 
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
 
+for(let i = 0; i < tilesHorizontal; i++)
+{
+    isClicked[i] = [];
+    mapValue[i] = [];
+}
+
+for (let i = 0; i < tilesHorizontal; i++) {
+    for (let j = 0; j < tilesVertical; j++) {
+        isClicked[i][j] = "unclicked";
+    }
+}
+
+console.log(mapValue);
 
 function RandomNumber(min, max)
 {
@@ -31,14 +45,6 @@ function GenerateUniqueRandomNumbers(count, min, max)
     return uniqueNumbers;
 }
 
-function drawImageWithSrc(x, y, src) {
-    const img = new Image();
-    img.onload = function() {
-        ctx.drawImage(img, x, y);
-    };
-    img.src = src;
-}
-
 function DrawTile(x, y, tileType) {
     const img = new Image();
     img.onload = function() {
@@ -49,7 +55,7 @@ function DrawTile(x, y, tileType) {
         case "unclicked":
             img.src = "unclicked.png";
             break;
-        case "bomb":
+        case 9:
             img.src = "bomb.png";
             break;
         case 0:
@@ -67,45 +73,63 @@ function DrawTile(x, y, tileType) {
     }
 }
 
-
-function DrawImageWithSrc(x, y, src)
-{
-    const img = new Image();
-    img.onload = function() {
-        ctx.drawImage(img, x, y);
-    };
-    img.src = src;
-}
-
 function GenerateBombms()
 {
-    for(let i = 0; i < tilesHorizontal; i++)
-    {
-        plane[i] = [];
-    }
-    let bombLeft = bombCount;
     let tileCount = tilesHorizontal * tilesVertical;
 
-    GenerateUniqueRandomNumbers(bombCount,0,tileCount-1).forEach(element => {
-        let y = element%10;
-        let x = Math.floor(element/10);
+    GenerateUniqueRandomNumbers(bombCount,0,tileCount-1).forEach(element =>
+    {
+        let y = element%tilesVertical;
+        let x = Math.floor(element/tilesVertical);
         console.log(element + " X:" + x + " Y:" + y);
-        plane[x][y] = "bomb";
+        mapValue[x][y] = 9;
     });
-    console.log(plane);
 }
 
-function CountBombsAround()
+function CountMapValue()
 {
-    return true;
-}
-
-function DrawBoard() {
     for (let i = 0; i < tilesHorizontal; i++) {
         for (let j = 0; j < tilesVertical; j++) {
+            if(mapValue[i][j] != 9)
+            {
+                mapValue[i][j] = 0;
+            }
+        }
+    }
+
+    mapValue.forEach((innerArray, outerIndex) => {
+        innerArray.forEach((element, innerIndex) => {
+            if(element == 9)
+            {
+                console.log("Bomb found at coordinates:", outerIndex, innerIndex);
+                if(outerIndex)
+                {
+                    
+                }
+
+                // mapValue[outerIndex-1][innerIndex-1] += 1;
+            }
+        });
+    });
+    console.log(mapValue);
+}
+
+console.log("AAAA");
+console.log(isClicked);
+
+function DrawBoard()
+{
+    for (let i = 0; i < tilesHorizontal; i++)
+    {
+        for (let j = 0; j < tilesVertical; j++)
+        {
             const x = i * tileSize;
             const y = j * tileSize;
-            DrawTile(x, y, "unclicked");
+            
+            // draws map (numbers, bombs)
+            DrawTile(x, y, mapValue[i][j]);
+            // draws "unclicked"
+            DrawTile(x, y, isClicked[i][j])
         }
     }
 }
@@ -127,6 +151,8 @@ canvas.addEventListener('click', function(event) {
 });
 
 GenerateBombms();
+CountMapValue();
+
 DrawBoard();
 
 // zrobić mapę liczb i od tego zrobic klikanie czyli po kliknieciu patrzy co tam jest i wykonuje odpowiednia akcje
