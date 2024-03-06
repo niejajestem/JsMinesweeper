@@ -18,9 +18,11 @@ for(let i = 0; i < tilesHorizontal; i++)
     mapValue[i] = [];
 }
 
-for (let i = 0; i < tilesHorizontal; i++) {
-    for (let j = 0; j < tilesVertical; j++) {
-        tileStatus[i][j] = 0;
+for (let i = 0; i < tilesHorizontal; i++)
+{
+    for (let j = 0; j < tilesVertical; j++)
+    {
+        tileStatus[i][j] = 2;
     }
 }
 
@@ -44,6 +46,15 @@ function GenerateUniqueRandomNumbers(count, min, max)
         }
     }
     return uniqueNumbers;
+}
+
+function IsIndexInArray(array, rowIndex, colIndex) {
+    return (
+        rowIndex >= 0 &&
+        colIndex >= 0 &&
+        rowIndex < array.length &&
+        colIndex < array[rowIndex].length
+    );
 }
 
 function DrawTile(x, y, tileType) {
@@ -73,6 +84,18 @@ function DrawTile(x, y, tileType) {
             break;
         case 3:
             img.src = "3.png";
+            break;
+        case 4:
+            img.src = "4.png";
+            break;
+        case 5:
+            img.src = "5.png";
+            break;
+        case 6:
+            img.src = "6.png";
+            break;
+        case 7:
+            img.src = "7.png";
             break;
     }
 }
@@ -106,12 +129,21 @@ function CountMapValue()
             if(element == 9)
             {
                 console.log("Bomb found at coordinates:", outerIndex, innerIndex);
-                if(outerIndex)
-                {
-                    
-                }
 
-                // mapValue[outerIndex-1][innerIndex-1] += 1;
+                for(let i = -1; i <= 1; i++)
+                {
+                    for(let j = -1; j <= 1; j++)
+                    {
+                        if(IsIndexInArray(mapValue, outerIndex+i,innerIndex+j) && mapValue[outerIndex+i][innerIndex+j] != 9)
+                        {
+                            if((i == 0 && j == 0)==false)
+                            {
+                                mapValue[outerIndex+i][innerIndex+j] += 1;
+                                console.log("i = "+ i +" j = "+ j);
+                            }
+                        }
+                    }
+                }
             }
         });
     });
@@ -121,8 +153,7 @@ function CountMapValue()
 console.log("AAAAAAAAA");
 console.log(tileStatus);
 
-
-async function DrawBoard()
+function DrawBoard()
 {
     for (let i = 0; i < tilesHorizontal; i++)
     {
@@ -145,11 +176,6 @@ async function DrawBoard()
             }
         }
     }
-}
-
-function Defuse()
-{
-
 }
 
 canvas.addEventListener("click", function(event) {
