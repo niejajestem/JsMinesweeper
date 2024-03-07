@@ -10,6 +10,7 @@ let tilesVertical = 8;
 let tilesHorizontal = 8;
 let bombCount = 10;
 let firstDefuse;
+let alive;
 
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
@@ -186,7 +187,7 @@ function Defuse(x,y)
 {
     if(firstDefuse == true && tileValue[x][y] != 0)
     {
-        // console.warn("REGENERATE");
+        console.log("REGENERATE");
         Regenerate(x,y);
     }
     else
@@ -216,12 +217,11 @@ function Defuse(x,y)
                 }
             }
         }
+        else if(tileValue[x][y] == 9)
+        {
+            alert("BUM!");
+        }
     }
-}
-
-function EndGame()
-{
-
 }
 
 canvas.addEventListener("click", function(event) {
@@ -256,6 +256,11 @@ canvas.addEventListener("contextmenu", function(event) {
     const y = Math.floor(mouseY / tileSize);
 
     // console.log("Tile flagged at position (" + x + ", " + y + ")");
+    if(firstDefuse)
+    {
+        Defuse(x,y);
+    }
+    
     switch(tileStatus[x][y])
     {
         case 0:
@@ -273,6 +278,7 @@ canvas.addEventListener("contextmenu", function(event) {
 function StartNewGame()
 {
     firstDefuse = true;
+    alive = true;
     ResetBoard();
     GenerateBombms();
     CounttileValue();
