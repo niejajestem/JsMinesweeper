@@ -3,11 +3,13 @@ const ctx = canvas.getContext('2d');
 // tileStatus 0-unclicked 1-flagged 2-clicked
 const tileStatus = [];
 const tileValue = [];
+const borderWidth = parseInt(canvas.style.borderWidth);
+const tileSize = 48;
 
 let tilesVertical = 8;
 let tilesHorizontal = 8;
-let tileSize = 32;
-let bombCount = 2;
+let bombCount = 10;
+let firstDefuse;
 
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
@@ -18,15 +20,18 @@ for(let i = 0; i < tilesHorizontal; i++)
     tileValue[i] = [];
 }
 
-for (let i = 0; i < tilesHorizontal; i++)
+function ResetBoard()
 {
-    for (let j = 0; j < tilesVertical; j++)
+    for (let i = 0; i < tilesHorizontal; i++)
     {
-        tileStatus[i][j] = 0;
+        for (let j = 0; j < tilesVertical; j++)
+        {
+            tileStatus[i][j] = 0;
+            tileValue[i][j] = 0;
+        }
     }
+    console.log(tileStatus);
 }
-
-console.log(tileValue);
 
 function RandomNumber(min, max)
 {
@@ -104,15 +109,6 @@ function DrawTile(x, y, tileType) {
     }
 }
 
-// let a = prompt();
-// let b = prompt();
-// let wynik = 0;
-
-// for(let i = 0; i <= b; i++)
-// {
-//     wynik *= ;
-// }
-
 function GenerateBombms()
 {
     let tileCount = tilesHorizontal * tilesVertical;
@@ -121,7 +117,7 @@ function GenerateBombms()
     {
         let y = element%tilesVertical;
         let x = Math.floor(element/tilesVertical);
-        console.log(element + " X:" + x + " Y:" + y);
+        // console.log(element + " X:" + x + " Y:" + y);
         tileValue[x][y] = 9;
     });
 }
@@ -141,8 +137,7 @@ function CounttileValue()
         innerArray.forEach((element, innerIndex) => {
             if(element == 9)
             {
-                console.log("Bomb found at coordinates:", outerIndex, innerIndex);
-
+                // console.log("Bomb found at coordinates:", outerIndex, innerIndex);
                 for(let i = -1; i <= 1; i++)
                 {
                     for(let j = -1; j <= 1; j++)
@@ -152,7 +147,7 @@ function CounttileValue()
                             if((i == 0 && j == 0)==false)
                             {
                                 tileValue[outerIndex+i][innerIndex+j] += 1;
-                                console.log("i = "+ i +" j = "+ j);
+                                // console.log("i = "+ i +" j = "+ j);
                             }
                         }
                     }
@@ -160,15 +155,7 @@ function CounttileValue()
             }
         });
     });
-    console.log(tileValue);
 }
-
-// pobierasz dwie liczy od uzytkownika np.a i b
-// podnosisz a do potegi b
-// podpowiedz: a^b to jest to samo a*a*a*a b razy
-
-console.log("AAAAAAAAA");
-console.log(tileStatus);
 
 function DrawBoard()
 {
@@ -197,45 +184,64 @@ function DrawBoard()
 
 function Defuse(x,y)
 {
-    tileStatus[x][y] = 2;
-    
-    if(tileValue[x][y] == 0)
+    if(firstDefuse == true && tileValue[x][y] != 0)
     {
-        for(let i = -1; i <= 1; i++)
+        // console.warn("REGENERATE");
+        Regenerate(x,y);
+    }
+    else
+    {
+        // console.warn("DO NOT");
+        firstDefuse = false;
+        tileStatus[x][y] = 2;
+    
+        if(tileValue[x][y] == 0)
         {
-            for(let j = -1; j <= 1; j++)
+            for(let i = -1; i <= 1; i++)
             {
-                // Why tf this wont work
-                // if(tileStatus[x + i][y + j] == 0 && IsIndexInArray(tileValue, x+i, y+j))
-                // {
-                //     console.warn("X: "+(x+i)+" Y: "+(y+j));
-                //     Defuse(x+i, y+j);
-                // }
-                // BUT THIS DOES??!?!?!??
-                if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x + i][y + j] == 0)
+                for(let j = -1; j <= 1; j++)
                 {
-                    console.warn("X: "+(x+i)+" Y: "+(y+j));
-                    Defuse(x+i, y+j);
+                    // Why tf this wont work
+                    // if(tileStatus[x + i][y + j] == 0 && IsIndexInArray(tileValue, x+i, y+j))
+                    // {
+                    //     console.warn("X: "+(x+i)+" Y: "+(y+j));
+                    //     Defuse(x+i, y+j);
+                    // }
+                    // BUT THIS DOES??!?!?!??
+                    if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x + i][y + j] == 0)
+                    {
+                        // console.warn("X: "+(x+i)+" Y: "+(y+j));
+                        Defuse(x+i, y+j);
+                    }
                 }
             }
         }
     }
 }
 
+function EndGame()
+{
+
+}
+
 canvas.addEventListener("click", function(event) {
     const boundingRect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - boundingRect.left;
-    const mouseY = event.clientY - boundingRect.top;
+    const mouseX = event.clientX - boundingRect.left - borderWidth;
+    const mouseY = event.clientY - boundingRect.top - borderWidth;
 
     const x = Math.floor(mouseX / tileSize);
     const y = Math.floor(mouseY / tileSize);
 
-    console.log("Tile clicked at position (" + x + ", " + y + ")");
+    // console.log("Tile clicked at position (" + x + ", " + y + ")");
     if(tileStatus[x][y] == 0)
     {
+        if(tileValue[x][y] == 9)
+        {
+            EndGame();
+        }
         Defuse(x,y);
     }
-    console.log(tileStatus[x][y]);
+    // console.log(tileStatus[x][y]);
     event.preventDefault();
     DrawBoard();
 
@@ -243,13 +249,13 @@ canvas.addEventListener("click", function(event) {
 
 canvas.addEventListener("contextmenu", function(event) {
     const boundingRect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - boundingRect.left;
-    const mouseY = event.clientY - boundingRect.top;
+    const mouseX = event.clientX - boundingRect.left - borderWidth;
+    const mouseY = event.clientY - boundingRect.top - borderWidth;
 
     const x = Math.floor(mouseX / tileSize);
     const y = Math.floor(mouseY / tileSize);
 
-    console.log("Tile flagged at position (" + x + ", " + y + ")");
+    // console.log("Tile flagged at position (" + x + ", " + y + ")");
     switch(tileStatus[x][y])
     {
         case 0:
@@ -259,14 +265,27 @@ canvas.addEventListener("contextmenu", function(event) {
             tileStatus[x][y] = 0;
             break;
     }
-    DrawBoard();
-    console.log(tileStatus[x][y]);
+    // console.log(tileStatus[x][y]);
     event.preventDefault();
+    DrawBoard();
 });
 
-GenerateBombms();
-CounttileValue();
+function StartNewGame()
+{
+    firstDefuse = true;
+    ResetBoard();
+    GenerateBombms();
+    CounttileValue();
+    DrawBoard();
+}
 
-DrawBoard();
+function Regenerate(x, y)
+{
+    ResetBoard();
+    GenerateBombms();
+    CounttileValue();
+    DrawBoard();
+    Defuse(x,y);
+}
 
-// zrobić mapę liczb i od tego zrobic klikanie czyli po kliknieciu patrzy co tam jest i wykonuje odpowiednia akcje
+StartNewGame();
