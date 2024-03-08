@@ -73,7 +73,7 @@ function DrawTile(x, y, tileValue)
     {
         ctx.drawImage(img, column*128, row*128, 128, 128, x, y, tileSize, tileSize);
     };
-    img.src = "tiles.png";
+    img.src = "tiles2.png";
 }
 
 function GenerateBombms()
@@ -89,7 +89,7 @@ function GenerateBombms()
     });
 }
 
-function CounttileValue()
+function CountTileValue()
 {
     for (let i = 0; i < tilesHorizontal; i++) {
         for (let j = 0; j < tilesVertical; j++) {
@@ -157,7 +157,18 @@ function RevealBombs()
         {
             if(tileValue[i][j] == 9)
             {
-                tileStatus[i][j] = 2;
+                if(tileStatus[i][j] == 1)
+                {
+                    tileStatus[i][j] = 2;
+                    tileValue[i][j] = 12;
+                }else if(tileStatus[i][j] == 2)
+                {
+                    tileValue[i][j] = 13;
+                    console.log("Bomba");
+                }else
+                {
+                    tileStatus[i][j] = 2;
+                }
             }
         }
     }
@@ -293,7 +304,7 @@ function StartNewGame()
     alive = true;
     ResetBoard();
     GenerateBombms();
-    CounttileValue();
+    CountTileValue();
     DrawBoard();
     document.getElementById("face").innerHTML = "o o<br>__";
 }
@@ -302,7 +313,7 @@ function Regenerate(x, y)
 {
     ResetBoard();
     GenerateBombms();
-    CounttileValue();
+    CountTileValue();
     DrawBoard();
     Defuse(x,y);
 }
