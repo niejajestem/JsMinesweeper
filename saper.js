@@ -10,7 +10,7 @@ let tilesVertical = 8;
 let tilesHorizontal = 8;
 let bombCount = 10;
 let firstDefuse;
-let alive;
+let alive = true;
 
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
@@ -63,51 +63,17 @@ function IsIndexInArray(array, rowIndex, colIndex) {
     );
 }
 
-function DrawTile(x, y, tileType) {
+function DrawTile(x, y, tileValue)
+{
+    let column = tileValue%4;
+    let row = Math.floor(tileValue/4);
+    console.log(tileValue+1+"   "+column+"   "+row);
     const img = new Image();
-    img.onload = function() {
-        ctx.drawImage(img, x, y, tileSize, tileSize);
+    img.onload = function()
+    {
+        ctx.drawImage(img, column*128, row*128, 128, 128, x, y, tileSize, tileSize);
     };
-
-    switch(tileType) {
-        
-        case 0:
-            img.src = "0.png";
-            break;
-        case 1:
-            img.src = "1.png";
-            break;
-        case 2:
-            img.src = "2.png";
-            break;
-        case 3:
-            img.src = "3.png";
-            break;
-        case 4:
-            img.src = "4.png";
-            break;
-        case 5:
-            img.src = "5.png";
-            break;
-        case 6:
-            img.src = "6.png";
-            break;
-        case 7:
-            img.src = "7.png";
-            break;
-        case 8:
-            img.src = "8.png";
-            break;
-        case 9:
-            img.src = "9.png";
-            break;
-        case 10:
-            img.src = "10.png";
-            break;
-        case 11:
-            img.src = "11.png";
-            break;
-    }
+    img.src = "tiles.png";
 }
 
 function GenerateBombms()
@@ -183,12 +149,33 @@ function DrawBoard()
     }
 }
 
+function RevealBombs()
+{
+    for (let i = 0; i < tilesHorizontal; i++)
+    {
+        for (let j = 0; j < tilesVertical; j++)
+        {
+            if(tileValue[i][j] == 9)
+            {
+                tileStatus[i][j] = 2;
+            }
+        }
+    }
+}
+
 function Defuse(x,y)
 {
     if(firstDefuse == true && tileValue[x][y] != 0)
     {
         console.log("REGENERATE");
         Regenerate(x,y);
+    }
+    else if(tileValue[x][y] == 9)
+    {
+        tileStatus[x][y] = 2;
+        alive = false;
+        RevealBombs();
+        document.getElementById("face").innerHTML = "x x<br>__";
     }
     else
     {
@@ -217,64 +204,64 @@ function Defuse(x,y)
                 }
             }
         }
-        else if(tileValue[x][y] == 9)
-        {
-            alert("BUM!");
-        }
     }
 }
 
-canvas.addEventListener("click", function(event) {
-    const boundingRect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - boundingRect.left - borderWidth;
-    const mouseY = event.clientY - boundingRect.top - borderWidth;
-
-    const x = Math.floor(mouseX / tileSize);
-    const y = Math.floor(mouseY / tileSize);
-
-    // console.log("Tile clicked at position (" + x + ", " + y + ")");
-    if(tileStatus[x][y] == 0)
+canvas.addEventListener("click", function(event)
+{
+    event.preventDefault();
+    if(alive)
     {
-        if(tileValue[x][y] == 9)
+        const boundingRect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - boundingRect.left - borderWidth;
+        const mouseY = event.clientY - boundingRect.top - borderWidth;
+        
+        const x = Math.floor(mouseX / tileSize);
+        const y = Math.floor(mouseY / tileSize);
+        
+        // console.log("Tile clicked at position (" + x + ", " + y + ")");
+        if(tileStatus[x][y] == 0)
         {
-            EndGame();
+            Defuse(x,y);
         }
-        Defuse(x,y);
+        // console.log(tileStatus[x][y]);
+        DrawBoard();
+        console.warn(alive);
     }
-    // console.log(tileStatus[x][y]);
-    event.preventDefault();
-    DrawBoard();
-
 });
-
-canvas.addEventListener("contextmenu", function(event) {
-    const boundingRect = canvas.getBoundingClientRect();
-    const mouseX = event.clientX - boundingRect.left - borderWidth;
-    const mouseY = event.clientY - boundingRect.top - borderWidth;
-
-    const x = Math.floor(mouseX / tileSize);
-    const y = Math.floor(mouseY / tileSize);
-
-    // console.log("Tile flagged at position (" + x + ", " + y + ")");
-    if(firstDefuse)
-    {
-        Defuse(x,y);
-    }
     
-    switch(tileStatus[x][y])
-    {
-        case 0:
-            tileStatus[x][y] = 1;
-            break;
-        case 1:
-            tileStatus[x][y] = 0;
-            break;
-    }
-    // console.log(tileStatus[x][y]);
+canvas.addEventListener("contextmenu", function(event)
+{
     event.preventDefault();
-    DrawBoard();
-});
+    if(alive)
+    {
+        const boundingRect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - boundingRect.left - borderWidth;
+        const mouseY = event.clientY - boundingRect.top - borderWidth;
+        
+        const x = Math.floor(mouseX / tileSize);
+        const y = Math.floor(mouseY / tileSize);
+        
+        // console.log("Tile flagged at position (" + x + ", " + y + ")");
+        if(firstDefuse)
+        {
+            Defuse(x,y);
+        }
 
+        switch(tileStatus[x][y])
+        {
+            case 0:
+                tileStatus[x][y] = 1;
+                break;
+            case 1:
+                tileStatus[x][y] = 0;
+                break;
+        }
+        // console.log(tileStatus[x][y]);
+        DrawBoard();
+    }
+});
+    
 function StartNewGame()
 {
     firstDefuse = true;
@@ -283,6 +270,7 @@ function StartNewGame()
     GenerateBombms();
     CounttileValue();
     DrawBoard();
+    document.getElementById("face").innerHTML = "o o<br>__";
 }
 
 function Regenerate(x, y)
