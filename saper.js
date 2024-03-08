@@ -6,23 +6,25 @@ const tileValue = [];
 const borderWidth = parseInt(canvas.style.borderWidth);
 const tileSize = 48;
 
-let tilesVertical = 8;
-let tilesHorizontal = 8;
-let bombCount = 10;
+let tilesVertical;
+let tilesHorizontal;
+let bombCount;
 let firstDefuse;
 let alive = true;
 
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
 
-for(let i = 0; i < tilesHorizontal; i++)
-{
-    tileStatus[i] = [];
-    tileValue[i] = [];
-}
+
 
 function ResetBoard()
 {
+    for(let i = 0; i < tilesHorizontal; i++)
+    {
+    tileStatus[i] = [];
+    tileValue[i] = [];
+    }
+
     for (let i = 0; i < tilesHorizontal; i++)
     {
         for (let j = 0; j < tilesVertical; j++)
@@ -73,7 +75,7 @@ function DrawTile(x, y, tileValue)
     {
         ctx.drawImage(img, column*128, row*128, 128, 128, x, y, tileSize, tileSize);
     };
-    img.src = "tiles2.png";
+    img.src = "tiles.png";
 }
 
 function GenerateBombms()
@@ -82,8 +84,8 @@ function GenerateBombms()
 
     GenerateUniqueRandomNumbers(bombCount,0,tileCount-1).forEach(element =>
     {
-        let y = element%tilesVertical;
-        let x = Math.floor(element/tilesVertical);
+        let x = Math.floor(element / tilesVertical);
+        let y = element % tilesVertical;
         // console.log(element + " X:" + x + " Y:" + y);
         tileValue[x][y] = 9;
     });
@@ -126,6 +128,7 @@ function CountTileValue()
 
 function DrawBoard()
 {
+    
     for (let i = 0; i < tilesHorizontal; i++)
     {
         for (let j = 0; j < tilesVertical; j++)
@@ -300,6 +303,18 @@ canvas.addEventListener("contextmenu", function(event)
     
 function StartNewGame()
 {
+    tilesVertical = document.getElementById("height").value;
+    tilesHorizontal = document.getElementById("width").value;
+    bombCount = document.getElementById("bombs").value;
+    if(bombCount >= tilesHorizontal*tilesHorizontal)
+    {
+        alert("There are "+bombCount+" bombs\nUnfortunatelly they can not fit inside this map that has only "+tilesHorizontal*tilesHorizontal+" tiles");
+        return 0;
+    }
+    canvas.width = tilesHorizontal * 48;
+    canvas.height = tilesVertical * 48;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     firstDefuse = true;
     alive = true;
     ResetBoard();
@@ -307,6 +322,7 @@ function StartNewGame()
     CountTileValue();
     DrawBoard();
     document.getElementById("face").innerHTML = "o o<br>__";
+    
 }
 
 function Regenerate(x, y)
