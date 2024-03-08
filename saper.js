@@ -67,7 +67,7 @@ function DrawTile(x, y, tileValue)
 {
     let column = tileValue%4;
     let row = Math.floor(tileValue/4);
-    console.log(tileValue+1+"   "+column+"   "+row);
+    // console.log(tileValue+1+"   "+column+"   "+row);
     const img = new Image();
     img.onload = function()
     {
@@ -163,6 +163,36 @@ function RevealBombs()
     }
 }
 
+function DefuseAround(x,y)
+{
+    let flagAround = 0;
+    for(let i = -1; i <= 1; i++)
+    {
+        for(let j = -1; j <= 1; j++)
+        {
+            if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] == 1)
+            {
+                flagAround++;
+            }
+        }
+    }
+
+    if(tileValue[x][y] == flagAround)
+    {
+        for(let i = -1; i <= 1; i++)
+        {
+            for(let j = -1; j <= 1; j++)
+            {
+                if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] != 1)
+                {
+                    Defuse(x+i,y+j);
+                }
+            }
+        }
+    }
+
+}
+
 function Defuse(x,y)
 {
     if(firstDefuse == true && tileValue[x][y] != 0)
@@ -189,13 +219,6 @@ function Defuse(x,y)
             {
                 for(let j = -1; j <= 1; j++)
                 {
-                    // Why tf this wont work
-                    // if(tileStatus[x + i][y + j] == 0 && IsIndexInArray(tileValue, x+i, y+j))
-                    // {
-                    //     console.warn("X: "+(x+i)+" Y: "+(y+j));
-                    //     Defuse(x+i, y+j);
-                    // }
-                    // BUT THIS DOES??!?!?!??
                     if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x + i][y + j] == 0)
                     {
                         // console.warn("X: "+(x+i)+" Y: "+(y+j));
@@ -223,10 +246,12 @@ canvas.addEventListener("click", function(event)
         if(tileStatus[x][y] == 0)
         {
             Defuse(x,y);
+        }else if(tileStatus[x][y] == 2)
+        {
+            DefuseAround(x,y);
         }
         // console.log(tileStatus[x][y]);
         DrawBoard();
-        console.warn(alive);
     }
 });
     
