@@ -204,7 +204,7 @@ function RevealBombs()
 
 function Defuse(x,y)
 {
-    if(firstDefuse == true && tileValue[x][y] == 9)
+    if(firstDefuse == true && tileValue[x][y] != 0)
     {
         CountPlayTime();
         // console.log("REGENERATE");
