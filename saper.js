@@ -10,31 +10,11 @@ let tilesVertical;
 let tilesHorizontal;
 let bombCount;
 let firstDefuse;
+let flags;
 let alive = true;
 
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
-
-
-
-function ResetBoard()
-{
-    for(let i = 0; i < tilesHorizontal; i++)
-    {
-    tileStatus[i] = [];
-    tileValue[i] = [];
-    }
-
-    for (let i = 0; i < tilesHorizontal; i++)
-    {
-        for (let j = 0; j < tilesVertical; j++)
-        {
-            tileStatus[i][j] = 0;
-            tileValue[i][j] = 0;
-        }
-    }
-    console.log(tileStatus);
-}
 
 function RandomNumber(min, max)
 {
@@ -65,17 +45,23 @@ function IsIndexInArray(array, rowIndex, colIndex) {
     );
 }
 
-function DrawTile(x, y, tileValue)
+function ResetBoard()
 {
-    let column = tileValue%4;
-    let row = Math.floor(tileValue/4);
-    // console.log(tileValue+1+"   "+column+"   "+row);
-    const img = new Image();
-    img.onload = function()
+    for(let i = 0; i < tilesHorizontal; i++)
     {
-        ctx.drawImage(img, column*128, row*128, 128, 128, x, y, tileSize, tileSize);
-    };
-    img.src = "tiles.png";
+    tileStatus[i] = [];
+    tileValue[i] = [];
+    }
+
+    for (let i = 0; i < tilesHorizontal; i++)
+    {
+        for (let j = 0; j < tilesVertical; j++)
+        {
+            tileStatus[i][j] = 0;
+            tileValue[i][j] = 0;
+        }
+    }
+    console.log(tileStatus);
 }
 
 function GenerateBombms()
@@ -126,8 +112,22 @@ function CountTileValue()
     });
 }
 
+function DrawTile(x, y, tileValue)
+{
+    let column = tileValue%4;
+    let row = Math.floor(tileValue/4);
+    // console.log(tileValue+1+"   "+column+"   "+row);
+    const img = new Image();
+    img.onload = function()
+    {
+        ctx.drawImage(img, column*128, row*128, 128, 128, x, y, tileSize, tileSize);
+    };
+    img.src = "tiles.png";
+}
+
 function DrawBoard()
 {
+    document.getElementById("flags").innerHTML = "Flags: "+ flags;
     
     for (let i = 0; i < tilesHorizontal; i++)
     {
@@ -177,36 +177,6 @@ function RevealBombs()
     }
 }
 
-function DefuseAround(x,y)
-{
-    let flagAround = 0;
-    for(let i = -1; i <= 1; i++)
-    {
-        for(let j = -1; j <= 1; j++)
-        {
-            if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] == 1)
-            {
-                flagAround++;
-            }
-        }
-    }
-
-    if(tileValue[x][y] == flagAround)
-    {
-        for(let i = -1; i <= 1; i++)
-        {
-            for(let j = -1; j <= 1; j++)
-            {
-                if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] != 1)
-                {
-                    Defuse(x+i,y+j);
-                }
-            }
-        }
-    }
-
-}
-
 function Defuse(x,y)
 {
     if(firstDefuse == true && tileValue[x][y] != 0)
@@ -242,6 +212,69 @@ function Defuse(x,y)
             }
         }
     }
+}
+
+function DefuseAround(x,y)
+{
+    let flagAround = 0;
+    for(let i = -1; i <= 1; i++)
+    {
+        for(let j = -1; j <= 1; j++)
+        {
+            if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] == 1)
+            {
+                flagAround++;
+            }
+        }
+    }
+
+    if(tileValue[x][y] == flagAround)
+    {
+        for(let i = -1; i <= 1; i++)
+        {
+            for(let j = -1; j <= 1; j++)
+            {
+                if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] != 1)
+                {
+                    Defuse(x+i,y+j);
+                }
+            }
+        }
+    }
+
+}
+
+function StartNewGame()
+{
+    tilesVertical = document.getElementById("height").value;
+    tilesHorizontal = document.getElementById("width").value;
+    bombCount = document.getElementById("bombs").value;
+    if(bombCount >= tilesHorizontal*tilesVertical)
+    {
+        alert("There are "+bombCount+" bombs\nUnfortunatelly they can not fit inside this map that has only "+tilesHorizontal*tilesVertical+" tiles");
+        return 0;
+    }
+    flags = bombCount;
+    canvas.width = tilesHorizontal * 48;
+    canvas.height = tilesVertical * 48;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    firstDefuse = true;
+    alive = true;
+    ResetBoard();
+    GenerateBombms();
+    CountTileValue();
+    DrawBoard();
+    document.getElementById("face").innerHTML = "o o<br>__";
+}
+
+function Regenerate(x, y)
+{
+    ResetBoard();
+    GenerateBombms();
+    CountTileValue();
+    DrawBoard();
+    Defuse(x,y);
 }
 
 canvas.addEventListener("click", function(event)
@@ -291,47 +324,16 @@ canvas.addEventListener("contextmenu", function(event)
         {
             case 0:
                 tileStatus[x][y] = 1;
+                flags--;
                 break;
             case 1:
                 tileStatus[x][y] = 0;
+                flags++;
                 break;
         }
         // console.log(tileStatus[x][y]);
         DrawBoard();
     }
 });
-    
-function StartNewGame()
-{
-    tilesVertical = document.getElementById("height").value;
-    tilesHorizontal = document.getElementById("width").value;
-    bombCount = document.getElementById("bombs").value;
-    if(bombCount >= tilesHorizontal*tilesHorizontal)
-    {
-        alert("There are "+bombCount+" bombs\nUnfortunatelly they can not fit inside this map that has only "+tilesHorizontal*tilesVertical+" tiles");
-        return 0;
-    }
-    canvas.width = tilesHorizontal * 48;
-    canvas.height = tilesVertical * 48;
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    firstDefuse = true;
-    alive = true;
-    ResetBoard();
-    GenerateBombms();
-    CountTileValue();
-    DrawBoard();
-    document.getElementById("face").innerHTML = "o o<br>__";
-    
-}
-
-function Regenerate(x, y)
-{
-    ResetBoard();
-    GenerateBombms();
-    CountTileValue();
-    DrawBoard();
-    Defuse(x,y);
-}
 
 StartNewGame();
