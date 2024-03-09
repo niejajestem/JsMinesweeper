@@ -19,23 +19,27 @@ let alive = true;
 kanwa.height = tileSize*tilesVertical;
 kanwa.width = tileSize*tilesHorizontal;
 
-function RandomNumber(min, max)
+function RandomNumber(min, max, exclude)
 {
-    //inclusive both sides
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    let randomNumber;
+    do{
+        randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+    }while(exclude.includes(randomNumber))
+    return randomNumber;
 }
 
-function GenerateUniqueRandomNumbers(count, min, max)
+function GenerateUniqueRandomNumbers(count, min, max, exclude)
 {
     const uniqueNumbers = [];
     while(uniqueNumbers.length < count)
     {
-        const randomNumber = RandomNumber(min, max);
+        const randomNumber = RandomNumber(min, max, exclude);
         if(!uniqueNumbers.includes(randomNumber))
         {
             uniqueNumbers.push(randomNumber);
         }
     }
+    console.log(uniqueNumbers);
     return uniqueNumbers;
 }
 
@@ -64,14 +68,24 @@ function ResetBoard()
             tileValue[i][j] = 0;
         }
     }
-    console.log(tileStatus);
+    // console.log(tileStatus);
 }
 
-function GenerateBombms()
+function GenerateBombms(x,y)
 {
     let tileCount = tilesHorizontal * tilesVertical;
+    let exclude = [];
+    for(let i = -1; i <= 1; i++)
+    {
+        for(let j = -1; j <= 1; j++)
+        {
+            let test = (x+i) * tilesHorizontal + (y+j) % (tilesVertical-1);
+            console.log("Liczba " + test + " x: " + (x+i) + " y: " + (y+j));
+        }
+    }
+    console.warn(exclude);
 
-    GenerateUniqueRandomNumbers(bombCount,0,tileCount-1).forEach(element =>
+    GenerateUniqueRandomNumbers(bombCount, 0, tileCount-1, exclude).forEach(element =>
     {
         let x = Math.floor(element / tilesVertical);
         let y = element % tilesVertical;
@@ -188,12 +202,12 @@ function RevealBombs()
     }
 }
 
-function Defuse(x,y,isFromDefuseAround)
+function Defuse(x,y)
 {
-    if(firstDefuse == true && tileValue[x][y] != 0)
+    if(firstDefuse == true && tileValue[x][y] == 9)
     {
         CountPlayTime();
-        console.log("REGENERATE");
+        // console.log("REGENERATE");
         Regenerate(x,y);
     }
     else if(tileValue[x][y] == 9)
@@ -250,7 +264,7 @@ function DefuseAround(x,y)
             {
                 if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] != 1)
                 {
-                    Defuse(x+i,y+j,true);
+                    Defuse(x+i,y+j);
                 }
             }
         }
@@ -276,7 +290,7 @@ function CheckForWin()
             if(tileStatus[i][j] != 2)
             {
                 unDefused++;
-                console.log("flaged" + unDefused);
+                // console.log("flaged" + unDefused);
             }
         }
     }
@@ -302,7 +316,7 @@ function Win()
     }
     clearTimeout(timePassed);
     flags = 0;
-    alert("You win!");
+    document.getElementById("face").innerHTML = "o o<br>yay";
 }
 
 function StartNewGame()
@@ -310,9 +324,9 @@ function StartNewGame()
     tilesVertical = document.getElementById("height").value;
     tilesHorizontal = document.getElementById("width").value;
     bombCount = document.getElementById("bombs").value;
-    if(bombCount >= tilesHorizontal*tilesVertical)
+    if(bombCount >= tilesHorizontal * tilesVertical)
     {
-        alert("There are "+bombCount+" bombs\nUnfortunatelly they can not fit inside this map that has only "+tilesHorizontal*tilesVertical+" tiles");
+        alert("There are " + bombCount + " bombs\Unfortunately they can not fit inside this map that has only " + tilesHorizontal * tilesVertical + " tiles");
         return 0;
     }
     flags = bombCount;
@@ -335,7 +349,7 @@ function StartNewGame()
 function Regenerate(x, y)
 {
     ResetBoard();
-    GenerateBombms();
+    GenerateBombms(x,y);
     CountTileValue();
     DrawBoard();
     Defuse(x,y);
