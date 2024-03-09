@@ -308,7 +308,7 @@ function StartNewGame()
     bombCount = document.getElementById("bombs").value;
     if(bombCount >= tilesHorizontal*tilesHorizontal)
     {
-        alert("There are "+bombCount+" bombs\nUnfortunatelly they can not fit inside this map that has only "+tilesHorizontal*tilesHorizontal+" tiles");
+        alert("There are "+bombCount+" bombs\nUnfortunatelly they can not fit inside this map that has only "+tilesHorizontal*tilesVertical+" tiles");
         return 0;
     }
     canvas.width = tilesHorizontal * 48;
