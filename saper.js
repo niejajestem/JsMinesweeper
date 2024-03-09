@@ -11,6 +11,9 @@ let tilesHorizontal;
 let bombCount;
 let firstDefuse;
 let flags;
+let time;
+let timePassed;
+let unDefused = 0;
 let alive = true;
 
 kanwa.height = tileSize*tilesVertical;
@@ -49,8 +52,8 @@ function ResetBoard()
 {
     for(let i = 0; i < tilesHorizontal; i++)
     {
-    tileStatus[i] = [];
-    tileValue[i] = [];
+        tileStatus[i] = [];
+        tileValue[i] = [];
     }
 
     for (let i = 0; i < tilesHorizontal; i++)
@@ -79,8 +82,10 @@ function GenerateBombms()
 
 function CountTileValue()
 {
-    for (let i = 0; i < tilesHorizontal; i++) {
-        for (let j = 0; j < tilesVertical; j++) {
+    for (let i = 0; i < tilesHorizontal; i++)
+    {
+        for (let j = 0; j < tilesVertical; j++)
+        {
             if(tileValue[i][j] != 9)
             {
                 tileValue[i][j] = 0;
@@ -127,7 +132,13 @@ function DrawTile(x, y, tileValue)
 
 function DrawBoard()
 {
-    document.getElementById("flags").innerHTML = "Flags: "+ flags;
+    if(flags < 0)
+    {
+        document.getElementById("flags").innerHTML = "Flags: "+ flags + "?";
+    }else
+    {
+        document.getElementById("flags").innerHTML = "Flags: "+ flags;
+    }
     
     for (let i = 0; i < tilesHorizontal; i++)
     {
@@ -177,15 +188,17 @@ function RevealBombs()
     }
 }
 
-function Defuse(x,y)
+function Defuse(x,y,isFromDefuseAround)
 {
     if(firstDefuse == true && tileValue[x][y] != 0)
     {
+        CountPlayTime();
         console.log("REGENERATE");
         Regenerate(x,y);
     }
     else if(tileValue[x][y] == 9)
     {
+        clearInterval(timePassed);
         tileStatus[x][y] = 2;
         alive = false;
         RevealBombs();
@@ -212,6 +225,7 @@ function Defuse(x,y)
             }
         }
     }
+    CheckForWin();
 }
 
 function DefuseAround(x,y)
@@ -236,12 +250,59 @@ function DefuseAround(x,y)
             {
                 if(IsIndexInArray(tileValue, x+i, y+j) && tileStatus[x+i][y+j] != 1)
                 {
-                    Defuse(x+i,y+j);
+                    Defuse(x+i,y+j,true);
                 }
             }
         }
     }
+}
 
+function CountPlayTime()
+{
+    clearInterval(timePassed);
+    timePassed = setInterval(() =>
+    {
+        time++;
+        document.getElementById("time").innerHTML = "Time: " + time;
+    }, 1000);
+}
+
+function CheckForWin()
+{
+    for (let i = 0; i < tilesHorizontal; i++)
+    {
+        for (let j = 0; j < tilesVertical; j++)
+        {
+            if(tileStatus[i][j] != 2)
+            {
+                unDefused++;
+                console.log("flaged" + unDefused);
+            }
+        }
+    }
+    if(unDefused == bombCount)
+    {
+        Win();
+    }
+    unDefused = 0;
+}
+
+function Win()
+{
+    for (let i = 0; i < tilesHorizontal; i++)
+    {
+        for (let j = 0; j < tilesVertical; j++)
+        {
+            if(tileStatus[i][j] != 2)
+            {
+                tileStatus[i][j] = 2;
+                tileValue[i][j] = 12;
+            }
+        }
+    }
+    clearTimeout(timePassed);
+    flags = 0;
+    alert("You win!");
 }
 
 function StartNewGame()
@@ -266,6 +327,9 @@ function StartNewGame()
     CountTileValue();
     DrawBoard();
     document.getElementById("face").innerHTML = "o o<br>__";
+    clearInterval(timePassed);
+    time = 0;
+    document.getElementById("time").innerHTML = "Time: " + time;
 }
 
 function Regenerate(x, y)
