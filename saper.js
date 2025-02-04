@@ -321,6 +321,7 @@ function Win()
 
 function StartNewGame()
 {
+    ResetBoard();
     tilesVertical = document.getElementById("height").value;
     tilesHorizontal = document.getElementById("width").value;
     bombCount = document.getElementById("bombs").value;
@@ -336,7 +337,6 @@ function StartNewGame()
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     firstDefuse = true;
     alive = true;
-    ResetBoard();
     GenerateBombms();
     CountTileValue();
     DrawBoard();
